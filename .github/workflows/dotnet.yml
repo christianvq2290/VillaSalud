@@ -1,1 +1,32 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: 8.0.x
+
+    - name: Restore packages
+      run: dotnet restore VillaSalud.sln
+
+    - name: Build solution
+      run: dotnet build VillaSalud.sln --no-restore
+
+    - name: Run tests
+      run: dotnet test VillaSalud.sln --no-build --verbosity normal
 
