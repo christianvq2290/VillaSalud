@@ -1,0 +1,79 @@
+@model ProgramarCitaVm
+@{
+    ViewData["Title"] = "Nueva cita";
+}
+<h1 class="titulo-pagina">Nueva cita</h1>
+<p class="subtitulo">Paso 1: paciente, médico y fecha. Paso 2: elija un intervalo disponible.</p>
+
+<div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+<div class="panel">
+    <h2>1. Paciente, médico y fecha</h2>
+    <form asp-action="Programar" method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label for="dni" class="form-label">DNI del paciente</label>
+            <input type="text" id="dni" name="dni" value="@Model.Dni" class="form-control" maxlength="8" inputmode="numeric" required />
+        </div>
+        <div class="col-md-5">
+            <label for="idMedico" class="form-label">Médico</label>
+            <select id="idMedico" name="idMedico" class="form-select" required>
+                <option value="">-- Seleccione --</option>
+                @foreach (var m in Model.Medicos)
+                {
+                    <option value="@m.IdMedico" selected="@(Model.Cita.IdMedico == m.IdMedico)">@m.NombreCompleto · @m.Especialidad</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="fecha" class="form-label">Fecha</label>
+            <input type="date" id="fecha" name="fecha" value="@Vista.FechaIso(Model.Cita.Fecha)" class="form-control" required />
+        </div>
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100">Ver disponibilidad</button></div>
+    </form>
+
+    @if (!string.IsNullOrWhiteSpace(Model.Dni) && Model.Paciente is null)
+    {
+        <div class="alert alert-warning mt-3 mb-0">
+            No hay un paciente con DNI @Model.Dni.
+            <a asp-controller="Pacientes" asp-action="Editar" asp-route-dni="@Model.Dni" asp-route-programar="true" class="alert-link">Registrar paciente</a>
+        </div>
+    }
+    else if (Model.Paciente is not null)
+    {
+        <div class="mt-3">
+            <strong>@Model.Paciente.NombreCompleto</strong> · DNI @Model.Paciente.Dni
+            @if (!Model.Paciente.ConsentimientoVigente)
+            {
+                <div class="alert alert-warning mt-2 mb-0">
+                    El paciente no registra el consentimiento para el tratamiento de sus datos.
+                    <a asp-controller="Pacientes" asp-action="Editar" asp-route-id="@Model.Paciente.IdPaciente" asp-route-programar="true" class="alert-link">Registrar consentimiento</a>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@if (Model.MostrarIntervalos && Model.Paciente is not null && Model.Paciente.ConsentimientoVigente)
+{
+    <div class="panel">
+        <h2>2. Intervalo disponible el @Vista.Fecha(Model.Cita.Fecha)</h2>
+        <form asp-action="Programar" method="post">
+            <input type="hidden" name="Dni" value="@Model.Dni" />
+            <input type="hidden" name="Cita.IdPaciente" value="@Model.Cita.IdPaciente" />
+            <input type="hidden" name="Cita.IdMedico" value="@Model.Cita.IdMedico" />
+            <input type="hidden" name="Cita.Fecha" value="@Vista.FechaIso(Model.Cita.Fecha)" />
+
+            @await Html.PartialAsync("_Intervalos", ("Cita.HoraInicio", Model.Intervalos, (TimeOnly?)null))
+
+            @if (Model.Intervalos.Any(i => i.Disponible))
+            {
+                <div class="mt-3 mb-3">
+                    <label for="Cita_MotivoConsulta" class="form-label">Motivo de la consulta (opcional)</label>
+                    <textarea id="Cita_MotivoConsulta" name="Cita.MotivoConsulta" class="form-control" rows="2" maxlength="500">@Model.Cita.MotivoConsulta</textarea>
+                </div>
+                <button type="submit" class="btn btn-primario">Registrar cita</button>
+            }
+            <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+        </form>
+    </div>
+}

@@ -1,0 +1,25 @@
+@model (string Campo, List<IntervaloDto> Intervalos, TimeOnly? Seleccionado)
+@* Lista de intervalos del médico para la fecha. Los ocupados o pasados se muestran deshabilitados. *@
+@if (Model.Intervalos.Count == 0)
+{
+    <div class="alert alert-warning mb-0">El médico no atiende en la fecha seleccionada. Elija otra fecha.</div>
+}
+else if (!Model.Intervalos.Any(i => i.Disponible))
+{
+    <div class="alert alert-warning mb-0">No quedan intervalos libres en esta fecha. Elija otra fecha.</div>
+}
+else
+{
+    <div class="intervalos" role="radiogroup" aria-label="Intervalos de atención">
+        @for (var n = 0; n < Model.Intervalos.Count; n++)
+        {
+            var intervalo = Model.Intervalos[n];
+            var id = "intervalo" + n;
+            <div class="intervalo @(intervalo.Disponible ? "" : "ocupado")">
+                <input type="radio" id="@id" name="@Model.Campo" value="@Vista.Hora(intervalo.HoraInicio)"
+                       disabled="@(!intervalo.Disponible)" checked="@(intervalo.Disponible && Model.Seleccionado == intervalo.HoraInicio)" />
+                <label for="@id">@Vista.Hora(intervalo.HoraInicio)<small>Cons. @intervalo.Consultorio</small></label>
+            </div>
+        }
+    </div>
+}

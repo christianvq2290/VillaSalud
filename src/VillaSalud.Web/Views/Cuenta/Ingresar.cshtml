@@ -1,0 +1,49 @@
+@model LoginDto
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ingreso – Clínica Villa Salud</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="icon" type="image/png" href="~/images/favicon.png" />
+</head>
+<body class="fondo-ingreso">
+    <div class="caja-ingreso">
+        <h1>Acceso a Citas Médicas</h1>
+        <p class="text-center text-secondary mb-4">Clínica Villa Salud</p>
+
+        @if (ViewData["Aviso"] is string aviso)
+        {
+            <div class="alert alert-warning" role="alert">@aviso</div>
+        }
+        @if (TempData["Exito"] is string exito)
+        {
+            <div class="alert alert-success" role="alert">@exito</div>
+        }
+        <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+
+        <form asp-action="Ingresar" asp-route-returnUrl="@ViewData["ReturnUrl"]" method="post" autocomplete="off">
+            <div class="mb-3">
+                <label asp-for="Username" class="form-label">Usuario</label>
+                <input asp-for="Username" class="form-control" autofocus autocomplete="username" />
+                <span asp-validation-for="Username" class="text-danger small"></span>
+            </div>
+            <div class="mb-4">
+                <label asp-for="Password" class="form-label">Contraseña</label>
+                <input asp-for="Password" type="password" class="form-control" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+            <button type="submit" class="btn btn-primario">Ingresar</button>
+        </form>
+
+        <p class="text-center mt-4 mb-0 small">
+            ¿Es paciente? <a asp-controller="Inicio" asp-action="Portal">Consulte horarios y el estado de su cita</a>
+        </p>
+    </div>
+</body>
+</html>

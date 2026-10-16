@@ -1,0 +1,101 @@
+@using System.Security.Claims
+@using VillaSalud.Web.Servicios
+@{
+    var autenticado = User.Identity?.IsAuthenticated == true;
+    var esAdmin = User.IsInRole("Administrador");
+    var esMedico = User.IsInRole("Medico");
+    var esRecepcion = User.IsInRole("Recepcionista");
+    var sede = User.FindFirstValue(ServicioSesion.ClaimSedeNombre) ?? (esAdmin ? "Todas las sedes" : "");
+    var rol = User.FindFirstValue(ClaimTypes.Role) == "Medico" ? "Médico" : User.FindFirstValue(ClaimTypes.Role);
+    var controlador = ViewContext.RouteData.Values["controller"]?.ToString();
+    string Activo(params string[] nombres) => nombres.Contains(controlador) ? "nav-link active" : "nav-link";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] – Clínica Villa Salud</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="icon" type="image/png" href="~/images/favicon.png" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark barra mb-4">
+            <div class="container">
+                <a class="navbar-brand fs-4" asp-controller="Inicio" asp-action="Index">Clínica Villa Salud</a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuPrincipal"
+                        aria-controls="menuPrincipal" aria-expanded="false" aria-label="Mostrar menú">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="menuPrincipal">
+                    @if (autenticado)
+                    {
+                        <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                            <li class="nav-item"><a class="@Activo("Inicio")" asp-controller="Inicio" asp-action="Index">Inicio</a></li>
+                            @if (esAdmin || esRecepcion)
+                            {
+                                <li class="nav-item"><a class="@Activo("Citas")" asp-controller="Citas" asp-action="Index">Citas</a></li>
+                                <li class="nav-item"><a class="@Activo("Pacientes")" asp-controller="Pacientes" asp-action="Index">Pacientes</a></li>
+                                <li class="nav-item"><a class="@Activo("Reportes")" asp-controller="Reportes" asp-action="Index">Reportes</a></li>
+                            }
+                            @if (esAdmin || esMedico)
+                            {
+                                <li class="nav-item"><a class="@Activo("Agenda")" asp-controller="Agenda" asp-action="Index">Agenda</a></li>
+                            }
+                            @if (esAdmin)
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="@Activo("Medicos", "Especialidades", "Consultorios", "Sedes", "Usuarios", "Auditoria") dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Administración</a>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item" asp-controller="Medicos" asp-action="Index">Médicos y horarios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Especialidades" asp-action="Index">Especialidades</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Consultorios" asp-action="Index">Consultorios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Sedes" asp-action="Index">Sedes</a></li>
+                                        <li><hr class="dropdown-divider" /></li>
+                                        <li><a class="dropdown-item" asp-controller="Usuarios" asp-action="Index">Usuarios</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Auditoria" asp-action="Index">Auditoría</a></li>
+                                    </ul>
+                                </li>
+                            }
+                        </ul>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span class="usuario-chip">
+                                <strong>@User.Identity!.Name</strong>
+                                <small>· @rol@(string.IsNullOrEmpty(sede) ? "" : " · " + sede)</small>
+                            </span>
+                            <a class="btn btn-sm btn-outline-light rounded-pill" asp-controller="Cuenta" asp-action="CambiarClave">Contraseña</a>
+                            <form asp-controller="Cuenta" asp-action="Salir" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3">Salir</button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ms-auto">
+                            <a class="btn btn-sm btn-outline-light rounded-pill" asp-controller="Cuenta" asp-action="Ingresar">Ingreso del personal</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="container">
+        <main role="main" class="pb-3">
+            <partial name="_Alertas" />
+            @RenderBody()
+        </main>
+    </div>
+
+    <footer class="pie">
+        <div class="container">&copy; 2026 Clínica Villa Salud · Plataforma de Gestión de Citas Médicas</div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

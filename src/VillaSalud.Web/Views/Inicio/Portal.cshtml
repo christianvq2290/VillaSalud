@@ -1,0 +1,44 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuracion
+@{
+    ViewData["Title"] = "Portal del paciente";
+}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="panel">
+            <h1 class="titulo-pagina">Portal del paciente</h1>
+            <p class="subtitulo">Información para su atención en la Clínica Villa Salud.</p>
+
+            <div class="row">
+                <div class="col-md-6">
+                    <dl class="dato">
+                        <dt>Horario de atención</dt>
+                        <dd>@Configuracion["Clinica:Horario"]</dd>
+                        <dt>Teléfono de citas</dt>
+                        <dd>@Configuracion["Clinica:Telefono"]</dd>
+                        <dt>Correo</dt>
+                        <dd>@Configuracion["Clinica:Correo"]</dd>
+                    </dl>
+                </div>
+                <div class="col-md-6">
+                    <dl class="dato">
+                        <dt>El día de su cita</dt>
+                        <dd>Preséntese 15 minutos antes con su documento de identidad.</dd>
+                        <dt>Código de cita</dt>
+                        <dd>Lo recibe al reservar. Con su DNI y ese código puede consultar el estado de su cita.</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <h2 class="mt-2">Asistente virtual</h2>
+            <p class="mb-1">
+                Use el botón de chat (esquina inferior derecha) para consultar horarios, sedes, especialidades
+                disponibles o el estado de su cita, las 24 horas.
+            </p>
+            <p class="small text-secondary mb-0">
+                Está conversando con un sistema automatizado. Sus datos se usan únicamente para responder su consulta,
+                conforme a la Ley N.° 29733, Ley de Protección de Datos Personales.
+            </p>
+            <partial name="_AsistenteVirtual" />
+        </div>
+    </div>
+</div>

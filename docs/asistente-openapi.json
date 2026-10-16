@@ -1,0 +1,179 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Villa Salud - Servicios para el asistente virtual",
+    "version": "1.0.0",
+    "description": "Consultas de solo lectura que usa el asistente virtual (IBM watsonx Assistant) del portal del paciente."
+  },
+  "servers": [
+    {
+      "url": "https://{host}",
+      "description": "API de Villa Salud publicada en Azure App Service",
+      "variables": {
+        "host": {
+          "default": "villasalud-api.azurewebsites.net",
+          "description": "Nombre de host de la API"
+        }
+      }
+    }
+  ],
+  "security": [
+    {
+      "ClaveApi": []
+    }
+  ],
+  "paths": {
+    "/api/v1/publico/sedes": {
+      "get": {
+        "operationId": "listarSedes",
+        "summary": "Sedes de la clínica",
+        "responses": {
+          "200": {
+            "description": "Sedes activas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Sede"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/publico/especialidades": {
+      "get": {
+        "operationId": "listarEspecialidades",
+        "summary": "Especialidades y médicos que atienden",
+        "responses": {
+          "200": {
+            "description": "Especialidades con sus médicos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Especialidad"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/publico/citas/estado": {
+      "get": {
+        "operationId": "consultarEstadoCita",
+        "summary": "Estado de una cita",
+        "description": "Requiere el DNI del paciente y el código de la cita. Si alguno no coincide responde 404.",
+        "parameters": [
+          {
+            "name": "dni",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "DNI del paciente (8 dígitos)"
+          },
+          {
+            "name": "codigo",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Código de la cita, por ejemplo C261012-7KQ2"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Datos de la cita",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EstadoCita"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No se encontró una cita con esos datos"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ClaveApi": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Api-Key"
+      }
+    },
+    "schemas": {
+      "Sede": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "direccion": {
+            "type": "string"
+          },
+          "distrito": {
+            "type": "string"
+          }
+        }
+      },
+      "Especialidad": {
+        "type": "object",
+        "properties": {
+          "especialidad": {
+            "type": "string"
+          },
+          "medicos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "EstadoCita": {
+        "type": "object",
+        "properties": {
+          "codigo": {
+            "type": "string"
+          },
+          "fecha": {
+            "type": "string",
+            "format": "date"
+          },
+          "horaInicio": {
+            "type": "string",
+            "description": "HH:mm:ss"
+          },
+          "medico": {
+            "type": "string"
+          },
+          "consultorio": {
+            "type": "string"
+          },
+          "sede": {
+            "type": "string"
+          },
+          "estado": {
+            "type": "string",
+            "description": "Pendiente, Reprogramada, Atendida, Cancelada o No asistió"
+          }
+        }
+      }
+    }
+  }
+}

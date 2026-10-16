@@ -1,0 +1,53 @@
+@model PacientesIndexVm
+@{
+    ViewData["Title"] = "Pacientes";
+}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="titulo-pagina mb-0">Pacientes</h1>
+    <a class="btn btn-primario" asp-action="Editar">Nuevo paciente</a>
+</div>
+<div class="panel">
+    <form asp-action="Index" method="get" class="row g-2">
+        <div class="col-md-6">
+            <label for="busqueda" class="visually-hidden">Buscar</label>
+            <input type="search" id="busqueda" name="busqueda" value="@Model.Busqueda" class="form-control" placeholder="Buscar por DNI, nombres o apellidos" />
+        </div>
+        <div class="col-auto"><button type="submit" class="btn btn-outline-primary">Buscar</button></div>
+    </form>
+</div>
+<div class="panel p-0">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>DNI</th><th>Paciente</th><th>Teléfono</th><th>Correo</th><th>Consentimiento</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var p in Model.Pacientes)
+                {
+                    <tr>
+                        <td>@p.Dni</td>
+                        <td class="fw-semibold">@p.NombreCompleto</td>
+                        <td>@p.Telefono</td>
+                        <td>@p.Email</td>
+                        <td>
+                            @if (p.ConsentimientoVigente)
+                            {
+                                <span class="estado estado-atendida">Vigente</span>
+                            }
+                            else
+                            {
+                                <span class="estado estado-cancelada">Pendiente</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-secondary" asp-controller="Citas" asp-action="Programar" asp-route-dni="@p.Dni">Nueva cita</a>
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Editar" asp-route-id="@p.IdPaciente">Editar</a>
+                        </td>
+                    </tr>
+                }
+                @if (Model.Pacientes.Count == 0)
+                {
+                    <tr><td colspan="6" class="text-center text-secondary py-4">No se encontraron pacientes.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

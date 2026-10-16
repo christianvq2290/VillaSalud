@@ -1,0 +1,81 @@
+@model PacienteDto
+@{
+    ViewData["Title"] = Model.IdPaciente == 0 ? "Nuevo paciente" : "Editar paciente";
+    var programar = Context.Request.Query["programar"] == "true" || Context.Request.Query["programar"] == "True";
+}
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="panel">
+            <h1 class="titulo-pagina">@ViewData["Title"]</h1>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <form asp-action="Editar" asp-route-id="@Model.IdPaciente" asp-route-programar="@programar" method="post">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Dni" class="form-label">DNI</label>
+                        <input asp-for="Dni" class="form-control" maxlength="8" inputmode="numeric" />
+                        <span asp-validation-for="Dni" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Nombres" class="form-label">Nombres</label>
+                        <input asp-for="Nombres" class="form-control" />
+                        <span asp-validation-for="Nombres" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Apellidos" class="form-label">Apellidos</label>
+                        <input asp-for="Apellidos" class="form-control" />
+                        <span asp-validation-for="Apellidos" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="FechaNacimiento" class="form-label">Fecha de nacimiento</label>
+                        <input type="date" id="FechaNacimiento" name="FechaNacimiento" class="form-control" value="@Vista.FechaIso(Model.FechaNacimiento)" />
+                        <span asp-validation-for="FechaNacimiento" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Telefono" class="form-label">Teléfono</label>
+                        <input asp-for="Telefono" class="form-control" />
+                        <span asp-validation-for="Telefono" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="Email" class="form-label">Correo</label>
+                        <input asp-for="Email" type="email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        <label asp-for="Direccion" class="form-label">Dirección</label>
+                        <input asp-for="Direccion" class="form-control" />
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label asp-for="TipoSangre" class="form-label">Tipo de sangre</label>
+                        <input asp-for="TipoSangre" class="form-control" maxlength="5" />
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label asp-for="Alergias" class="form-label">Alergias</label>
+                        <textarea asp-for="Alergias" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+
+                <div class="border rounded-3 p-3 mb-4 bg-light">
+                    <div class="form-check">
+                        <input asp-for="AceptaTratamientoDatos" class="form-check-input" />
+                        <label asp-for="AceptaTratamientoDatos" class="form-check-label fw-semibold">
+                            El paciente autoriza el tratamiento de sus datos personales y de salud
+                        </label>
+                    </div>
+                    <p class="small text-secondary mb-0 mt-1">
+                        Finalidad: gestión de citas médicas y comunicaciones asociadas (Ley N.° 29733). Sin esta autorización no se pueden programar citas.
+                        @if (Model.FechaConsentimiento.HasValue)
+                        {
+                            <span>Aceptado el @Model.FechaConsentimiento.Value.ToString("dd/MM/yyyy HH:mm").</span>
+                        }
+                    </p>
+                </div>
+
+                <button type="submit" class="btn btn-primario">Guardar</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,70 @@
+@model CitaDetalleDto
+@{
+    ViewData["Title"] = "Cita " + Model.Codigo;
+}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="titulo-pagina mb-0">Cita @Model.Codigo <span class="@Vista.ClaseEstado(Model.IdEstadoCita) align-middle ms-2">@Model.Estado</span></h1>
+    <a class="btn btn-outline-secondary" asp-action="Index">Volver a citas</a>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="panel">
+            <h2>Datos de la cita</h2>
+            <dl class="row dato mb-0">
+                <dt class="col-sm-4">Paciente</dt><dd class="col-sm-8">@Model.Paciente · DNI @Model.DniPaciente</dd>
+                <dt class="col-sm-4">Médico</dt><dd class="col-sm-8">@Model.Medico · @Model.Especialidad</dd>
+                <dt class="col-sm-4">Fecha y hora</dt><dd class="col-sm-8">@Vista.Fecha(Model.Fecha), de @Vista.Hora(Model.HoraInicio) a @Vista.Hora(Model.HoraFin)</dd>
+                <dt class="col-sm-4">Consultorio</dt><dd class="col-sm-8">@Model.Consultorio · @Model.Sede</dd>
+                <dt class="col-sm-4">Motivo</dt><dd class="col-sm-8">@(Model.MotivoConsulta ?? "—")</dd>
+                <dt class="col-sm-4">Observación</dt><dd class="col-sm-8">@(Model.Observacion ?? "—")</dd>
+                <dt class="col-sm-4">Registrada</dt><dd class="col-sm-8">@Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")</dd>
+            </dl>
+        </div>
+
+        <div class="panel p-0">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead><tr><th>Fecha</th><th>Cambio</th><th>Motivo</th><th>Usuario</th></tr></thead>
+                    <tbody>
+                        @foreach (var h in Model.Historial)
+                        {
+                            <tr>
+                                <td class="text-nowrap">@h.Fecha.ToString("dd/MM/yyyy HH:mm")</td>
+                                <td>@(h.EstadoAnterior is null ? h.EstadoNuevo : h.EstadoAnterior + " → " + h.EstadoNuevo)</td>
+                                <td>@h.Motivo</td>
+                                <td>@h.Usuario</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        @if (Model.Activa)
+        {
+            <div class="panel">
+                <h2>Reprogramar</h2>
+                <p class="text-secondary small">Mueve la cita a otro intervalo del mismo médico.</p>
+                <a class="btn btn-outline-primary" asp-action="Reprogramar" asp-route-id="@Model.IdCita">Elegir nueva fecha</a>
+            </div>
+            <div class="panel">
+                <h2>Cancelar la cita</h2>
+                <form asp-action="Cancelar" asp-route-id="@Model.IdCita" method="post" data-confirmar="¿Cancelar la cita @Model.Codigo? El intervalo quedará libre.">
+                    <input type="hidden" name="RowVersion" value="@Model.RowVersion" />
+                    <div class="mb-3">
+                        <label for="Motivo" class="form-label">Motivo</label>
+                        <input type="text" id="Motivo" name="Motivo" class="form-control" maxlength="250" required />
+                    </div>
+                    <button type="submit" class="btn btn-outline-danger">Cancelar cita</button>
+                </form>
+            </div>
+        }
+        else
+        {
+            <div class="panel text-secondary">La cita está en estado @Model.Estado y ya no admite cambios.</div>
+        }
+    </div>
+</div>

@@ -1,0 +1,53 @@
+@model List<UsuarioDto>
+@{
+    ViewData["Title"] = "Usuarios";
+}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="titulo-pagina mb-0">Usuarios</h1>
+    <a class="btn btn-primario" asp-action="Editar">Nuevo usuario</a>
+</div>
+<div class="panel p-0">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>Usuario</th><th>Rol</th><th>Sede</th><th>Médico</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td class="fw-semibold">@u.Username</td>
+                        <td>@(u.Rol == "Medico" ? "Médico" : u.Rol)</td>
+                        <td>@(u.Sede ?? (u.Rol == "Administrador" ? "Todas" : "—"))</td>
+                        <td>@(u.Medico ?? "—")</td>
+                        <td>
+                            @if (!u.Estado)
+                            {
+                                <span class="estado estado-cancelada">Inactivo</span>
+                            }
+                            else if (u.Bloqueado)
+                            {
+                                <span class="estado estado-reprogramada">Bloqueado</span>
+                            }
+                            else if (u.DebeCambiarClave)
+                            {
+                                <span class="estado estado-pendiente">Clave temporal</span>
+                            }
+                            else
+                            {
+                                <span class="estado estado-atendida">Activo</span>
+                            }
+                        </td>
+                        <td class="text-end text-nowrap">
+                            @if (u.Bloqueado)
+                            {
+                                <form asp-action="Desbloquear" asp-route-id="@u.IdUsuario" method="post" class="d-inline">
+                                    <button type="submit" class="btn btn-sm btn-outline-warning">Desbloquear</button>
+                                </form>
+                            }
+                            <a class="btn btn-sm btn-outline-primary" asp-action="Editar" asp-route-id="@u.IdUsuario">Editar</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

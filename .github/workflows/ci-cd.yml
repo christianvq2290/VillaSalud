@@ -1,0 +1,103 @@
+# Integración y despliegue continuo de la Plataforma de Gestión de Citas - Clínica Villa Salud
+# CI : compila y ejecuta las pruebas en cada push y pull request.
+# CD : publica la API y el cliente web en Azure App Service cuando el cambio llega a main.
+#
+# Secretos del repositorio (Settings > Secrets and variables > Actions):
+#   AZURE_PUBLISH_PROFILE_API   perfil de publicación del App Service de la API
+#   AZURE_PUBLISH_PROFILE_WEB   perfil de publicación del App Service del cliente web
+# Variables del repositorio:
+#   AZURE_APP_API, AZURE_APP_WEB   nombres de los App Service
+name: CI-CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  DOTNET_VERSION: '8.0.x'
+  CONFIGURACION: Release
+
+jobs:
+  compilar-y-probar:
+    name: Compilar y probar
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restaurar paquetes
+        run: dotnet restore VillaSalud.sln
+
+      - name: Compilar
+        run: dotnet build VillaSalud.sln --configuration ${{ env.CONFIGURACION }} --no-restore
+
+      - name: Pruebas unitarias y de integración
+        run: >
+          dotnet test VillaSalud.sln --configuration ${{ env.CONFIGURACION }} --no-build
+          --logger "trx;LogFileName=pruebas.trx" --collect "XPlat Code Coverage"
+          --results-directory TestResults
+
+      - name: Publicar resultados de pruebas
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: resultados-pruebas
+          path: TestResults
+
+      - name: Empaquetar API
+        run: dotnet publish src/VillaSalud.Api/VillaSalud.Api.csproj -c ${{ env.CONFIGURACION }} --no-build -o publicar/api
+
+      - name: Empaquetar cliente web
+        run: dotnet publish src/VillaSalud.Web/VillaSalud.Web.csproj -c ${{ env.CONFIGURACION }} --no-build -o publicar/web
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api
+          path: publicar/api
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: web
+          path: publicar/web
+
+  desplegar:
+    name: Desplegar en Azure
+    needs: compilar-y-probar
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    environment: produccion
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: api
+          path: api
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: web
+          path: web
+
+      - name: Desplegar API
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_APP_API }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_API }}
+          package: api
+
+      - name: Desplegar cliente web
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ vars.AZURE_APP_WEB }}
+          publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE_WEB }}
+          package: web
+
+      - name: Verificar que la API responde
+        run: |
+          sleep 30
+          curl --fail --silent --show-error "https://${{ vars.AZURE_APP_API }}.azurewebsites.net/health"

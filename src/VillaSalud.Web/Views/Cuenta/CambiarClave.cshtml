@@ -1,0 +1,44 @@
+@model CambiarClaveDto
+@{
+    ViewData["Title"] = "Cambiar contraseña";
+    var obligatorio = ViewData["Obligatorio"] as bool? ?? false;
+}
+<div class="row justify-content-center">
+    <div class="col-md-7 col-lg-5">
+        <div class="panel">
+            <h1 class="titulo-pagina">Cambiar contraseña</h1>
+            @if (obligatorio)
+            {
+                <div class="alert alert-warning">Su contraseña es temporal. Debe cambiarla para continuar.</div>
+            }
+            <p class="subtitulo">Mínimo 8 caracteres, con al menos una letra y un número.</p>
+
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <form asp-action="CambiarClave" method="post" autocomplete="off">
+                <div class="mb-3">
+                    <label asp-for="ClaveActual" class="form-label">Contraseña actual</label>
+                    <input asp-for="ClaveActual" type="password" class="form-control" autocomplete="current-password" />
+                    <span asp-validation-for="ClaveActual" class="text-danger small"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="ClaveNueva" class="form-label">Contraseña nueva</label>
+                    <input asp-for="ClaveNueva" type="password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ClaveNueva" class="text-danger small"></span>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="ConfirmarClave" class="form-label">Confirmar contraseña nueva</label>
+                    <input asp-for="ConfirmarClave" type="password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmarClave" class="text-danger small"></span>
+                </div>
+                <button type="submit" class="btn btn-primario">Guardar</button>
+                @if (!obligatorio)
+                {
+                    <a class="btn btn-outline-secondary" asp-controller="Inicio" asp-action="Index">Cancelar</a>
+                }
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

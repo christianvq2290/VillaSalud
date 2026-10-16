@@ -1,0 +1,39 @@
+@model ReprogramarVm
+@{
+    ViewData["Title"] = "Reprogramar cita";
+}
+<h1 class="titulo-pagina">Reprogramar cita @Model.Cita.Codigo</h1>
+<p class="subtitulo">@Model.Cita.Paciente · @Model.Cita.Medico (@Model.Cita.Especialidad) · actualmente el @Vista.Fecha(Model.Cita.Fecha) a las @Vista.Hora(Model.Cita.HoraInicio)</p>
+
+<div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+<div class="panel">
+    <h2>1. Nueva fecha</h2>
+    <form asp-action="Reprogramar" asp-route-id="@Model.Cita.IdCita" method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label for="fecha" class="form-label">Fecha</label>
+            <input type="date" id="fecha" name="fecha" value="@Vista.FechaIso(Model.Datos.Fecha)" class="form-control" required />
+        </div>
+        <div class="col-md-3"><button type="submit" class="btn btn-outline-primary">Ver disponibilidad</button></div>
+    </form>
+</div>
+
+<div class="panel">
+    <h2>2. Intervalo disponible el @Vista.Fecha(Model.Datos.Fecha)</h2>
+    <form asp-action="Reprogramar" asp-route-id="@Model.Cita.IdCita" method="post">
+        <input type="hidden" name="Datos.Fecha" value="@Vista.FechaIso(Model.Datos.Fecha)" />
+        <input type="hidden" name="Datos.RowVersion" value="@Model.Datos.RowVersion" />
+
+        @await Html.PartialAsync("_Intervalos", ("Datos.HoraInicio", Model.Intervalos, (TimeOnly?)null))
+
+        @if (Model.Intervalos.Any(i => i.Disponible))
+        {
+            <div class="mt-3 mb-3">
+                <label for="Datos_Motivo" class="form-label">Motivo de la reprogramación</label>
+                <input type="text" id="Datos_Motivo" name="Datos.Motivo" value="@Model.Datos.Motivo" class="form-control" maxlength="250" required />
+            </div>
+            <button type="submit" class="btn btn-primario">Reprogramar</button>
+        }
+        <a class="btn btn-outline-secondary" asp-action="Detalle" asp-route-id="@Model.Cita.IdCita">Cancelar</a>
+    </form>
+</div>

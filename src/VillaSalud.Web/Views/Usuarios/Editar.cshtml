@@ -1,0 +1,68 @@
+@model UsuarioEditarVm
+@{
+    var nuevo = Model.IdUsuario == 0;
+    ViewData["Title"] = nuevo ? "Nuevo usuario" : "Editar usuario";
+}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="panel">
+            <h1 class="titulo-pagina">@ViewData["Title"]</h1>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <form asp-action="Editar" asp-route-id="@Model.IdUsuario" method="post" autocomplete="off">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Datos.Username" class="form-label">Nombre de usuario</label>
+                        <input asp-for="Datos.Username" class="form-control" autocomplete="off" />
+                        <span asp-validation-for="Datos.Username" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Datos.Password" class="form-label">@(nuevo ? "Contraseña temporal" : "Nueva contraseña temporal")</label>
+                        <input asp-for="Datos.Password" type="password" class="form-control" autocomplete="new-password" />
+                        <span asp-validation-for="Datos.Password" class="text-danger small"></span>
+                        <div class="form-text">@(nuevo ? "El usuario deberá cambiarla en su primer ingreso." : "Déjela vacía para conservar la actual.")</div>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Datos.IdRol" class="form-label">Rol</label>
+                        <select asp-for="Datos.IdRol" class="form-select">
+                            <option value="0">-- Seleccione --</option>
+                            @foreach (var r in Model.Roles)
+                            {
+                                <option value="@r.IdRol">@(r.Nombre == "Medico" ? "Médico" : r.Nombre)</option>
+                            }
+                        </select>
+                        <span asp-validation-for="Datos.IdRol" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Datos.IdSede" class="form-label">Sede</label>
+                        <select asp-for="Datos.IdSede" class="form-select">
+                            <option value="">Todas (solo administrador de la red)</option>
+                            @foreach (var s in Model.Sedes)
+                            {
+                                <option value="@s.IdSede">@s.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-12 mb-3">
+                        <label asp-for="Datos.IdMedico" class="form-label">Médico asociado (solo para el rol Médico)</label>
+                        <select asp-for="Datos.IdMedico" class="form-select">
+                            <option value="">Ninguno</option>
+                            @foreach (var m in Model.Medicos)
+                            {
+                                <option value="@m.IdMedico">@m.NombreCompleto · @m.Especialidad</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-check mb-4">
+                    <input asp-for="Datos.Estado" class="form-check-input" />
+                    <label asp-for="Datos.Estado" class="form-check-label">Usuario activo</label>
+                </div>
+                <button type="submit" class="btn btn-primario">Guardar</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

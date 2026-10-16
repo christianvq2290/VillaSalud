@@ -1,0 +1,46 @@
+@model AuditoriaVm
+@{
+    ViewData["Title"] = "Auditoría";
+}
+<h1 class="titulo-pagina">Auditoría</h1>
+<p class="subtitulo">Registro de operaciones: quién hizo qué, cuándo y desde dónde. Se muestran hasta 500 registros.</p>
+
+<div class="panel">
+    <form asp-action="Index" method="get" class="row g-2 align-items-end">
+        <div class="col-6 col-md-3">
+            <label for="desde" class="form-label">Desde</label>
+            <input type="date" id="desde" name="desde" value="@Vista.FechaIso(Model.Desde)" class="form-control" />
+        </div>
+        <div class="col-6 col-md-3">
+            <label for="hasta" class="form-label">Hasta</label>
+            <input type="date" id="hasta" name="hasta" value="@Vista.FechaIso(Model.Hasta)" class="form-control" />
+        </div>
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100">Consultar</button></div>
+    </form>
+</div>
+
+<div class="panel p-0">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm">
+            <thead><tr><th>Fecha</th><th>Usuario</th><th>Acción</th><th>Entidad</th><th>Id</th><th>Detalle</th><th>IP</th></tr></thead>
+            <tbody>
+                @foreach (var a in Model.Registros)
+                {
+                    <tr>
+                        <td class="text-nowrap">@a.Fecha.ToString("dd/MM/yyyy HH:mm:ss")</td>
+                        <td>@(a.Usuario ?? "—")</td>
+                        <td class="fw-semibold">@a.Accion</td>
+                        <td>@a.Entidad</td>
+                        <td>@a.IdEntidad</td>
+                        <td class="small text-break">@a.Detalle</td>
+                        <td>@a.Ip</td>
+                    </tr>
+                }
+                @if (Model.Registros.Count == 0)
+                {
+                    <tr><td colspan="7" class="text-center text-secondary py-4">No hay registros en el periodo.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

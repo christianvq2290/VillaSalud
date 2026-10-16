@@ -1,0 +1,31 @@
+@inject Microsoft.Extensions.Configuration.IConfiguration Configuracion
+@{
+    // Web chat de IBM watsonx Assistant. Los identificadores se copian de la pestaña "Embed" de la integración Web chat.
+    var integracion = Configuracion["Asistente:IntegrationId"];
+    var region = Configuracion["Asistente:Region"];
+    var instancia = Configuracion["Asistente:ServiceInstanceId"];
+}
+@if (!string.IsNullOrWhiteSpace(integracion) && !string.IsNullOrWhiteSpace(instancia))
+{
+    <script>
+        window.watsonAssistantChatOptions = {
+            integrationID: "@integracion",
+            region: "@region",
+            serviceInstanceID: "@instancia",
+            onLoad: async function (instance) { await instance.render(); }
+        };
+        setTimeout(function () {
+            var t = document.createElement('script');
+            t.src = "https://web-chat.global.assistant.watson.appdomain.cloud/versions/" +
+                (window.watsonAssistantChatOptions.clientVersion || 'latest') + "/WatsonAssistantChatEntry.js";
+            document.head.appendChild(t);
+        });
+    </script>
+}
+else
+{
+    <div class="alert alert-info mt-3 mb-0" role="status">
+        El asistente virtual aún no está configurado. Complete <code>Asistente:IntegrationId</code> y
+        <code>Asistente:ServiceInstanceId</code> en la configuración del cliente web.
+    </div>
+}

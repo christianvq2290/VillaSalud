@@ -1,0 +1,82 @@
+@model HorariosVm
+@{
+    ViewData["Title"] = "Horarios de atención";
+}
+<h1 class="titulo-pagina">Horarios de atención</h1>
+<p class="subtitulo">@Model.Medico.NombreCompleto · @Model.Medico.Especialidad</p>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="panel p-0">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead><tr><th>Día</th><th>Horario</th><th>Consultorio</th><th>Duración</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var h in Model.Horarios)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@h.Dia</td>
+                                <td>@Vista.Hora(h.HoraInicio) – @Vista.Hora(h.HoraFin)</td>
+                                <td>@h.Consultorio (@h.Sede)</td>
+                                <td>@h.DuracionCitaMin min</td>
+                                <td class="text-end">
+                                    <form asp-action="QuitarHorario" asp-route-id="@Model.Medico.IdMedico" asp-route-idHorario="@h.IdHorario" method="post" class="d-inline" data-confirmar="¿Retirar este horario? Las citas ya programadas no se modifican.">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">Quitar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        @if (Model.Horarios.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-center text-secondary py-4">El médico aún no tiene horarios. Sin horarios no se le pueden programar citas.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <a class="btn btn-outline-secondary" asp-action="Index">Volver a médicos</a>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="panel">
+            <h2>Agregar horario</h2>
+            <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+            <form asp-action="AgregarHorario" asp-route-id="@Model.Medico.IdMedico" method="post">
+                <div class="mb-3">
+                    <label asp-for="Nuevo.DiaSemana" class="form-label">Día</label>
+                    <select asp-for="Nuevo.DiaSemana" class="form-select">
+                        @foreach (var (id, nombre) in Vista.Dias)
+                        {
+                            <option value="@id">@nombre</option>
+                        }
+                    </select>
+                </div>
+                <div class="row">
+                    <div class="col-6 mb-3">
+                        <label for="Nuevo_HoraInicio" class="form-label">Desde</label>
+                        <input type="time" id="Nuevo_HoraInicio" name="Nuevo.HoraInicio" class="form-control" value="@Vista.Hora(Model.Nuevo.HoraInicio)" required />
+                    </div>
+                    <div class="col-6 mb-3">
+                        <label for="Nuevo_HoraFin" class="form-label">Hasta</label>
+                        <input type="time" id="Nuevo_HoraFin" name="Nuevo.HoraFin" class="form-control" value="@Vista.Hora(Model.Nuevo.HoraFin)" required />
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Nuevo.IdConsultorio" class="form-label">Consultorio</label>
+                    <select asp-for="Nuevo.IdConsultorio" class="form-select">
+                        <option value="0">-- Seleccione --</option>
+                        @foreach (var c in Model.Consultorios)
+                        {
+                            <option value="@c.IdConsultorio">@c.Numero · @c.Sede</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-4">
+                    <label asp-for="Nuevo.DuracionCitaMin" class="form-label">Duración de cada cita (minutos)</label>
+                    <input asp-for="Nuevo.DuracionCitaMin" type="number" min="10" max="120" step="5" class="form-control" />
+                </div>
+                <button type="submit" class="btn btn-primario">Agregar</button>
+            </form>
+        </div>
+    </div>
+</div>

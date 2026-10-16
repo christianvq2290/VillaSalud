@@ -1,0 +1,148 @@
+@model TableroVm
+@{
+    ViewData["Title"] = "Inicio";
+    var esAdmin = User.IsInRole("Administrador");
+    var esMedico = User.IsInRole("Medico");
+    var i = Model.Indicadores;
+}
+<h1 class="titulo-pagina">Gestión de Citas Médicas</h1>
+<p class="subtitulo">Bienvenido(a), @User.Identity!.Name. Seleccione un módulo para continuar.</p>
+
+@if (i is not null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg">
+            <div class="indicador acento"><div class="valor">@i.CitasHoy</div><div class="etiqueta">Citas para hoy</div></div>
+        </div>
+        <div class="col-6 col-lg">
+            <div class="indicador"><div class="valor">@i.TotalCitas</div><div class="etiqueta">Citas del periodo</div></div>
+        </div>
+        <div class="col-6 col-lg">
+            <div class="indicador"><div class="valor">@i.Pendientes</div><div class="etiqueta">Por atender</div></div>
+        </div>
+        <div class="col-6 col-lg">
+            <div class="indicador"><div class="valor">@i.Atendidas</div><div class="etiqueta">Atendidas</div></div>
+        </div>
+        <div class="col-6 col-lg">
+            <div class="indicador"><div class="valor">@i.TasaInasistencia.ToString("0.#")%</div><div class="etiqueta">Tasa de inasistencia</div></div>
+        </div>
+    </div>
+}
+
+<div class="row g-3 mb-4">
+    @if (!esMedico)
+    {
+        <div class="col-6 col-md-4 col-lg-2">
+            <a class="modulo" asp-controller="Citas" asp-action="Programar">
+                <img src="~/images/dashboard/Cita.svg" alt="" />
+                <div class="nombre">Nueva cita</div><div class="detalle">Programar con disponibilidad</div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a class="modulo" asp-controller="Citas" asp-action="Index">
+                <img src="~/images/dashboard/EstadoCita.svg" alt="" />
+                <div class="nombre">Citas</div><div class="detalle">Consultar y gestionar</div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a class="modulo" asp-controller="Pacientes" asp-action="Index">
+                <img src="~/images/dashboard/pacientes.svg" alt="" />
+                <div class="nombre">Pacientes</div><div class="detalle">Registro y consentimiento</div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a class="modulo" asp-controller="Reportes" asp-action="Index">
+                <img src="~/images/dashboard/especialidades.svg" alt="" />
+                <div class="nombre">Reportes</div><div class="detalle">PDF, Excel y CSV</div>
+            </a>
+        </div>
+    }
+    @if (esAdmin || esMedico)
+    {
+        <div class="col-6 col-md-4 col-lg-2">
+            <a class="modulo" asp-controller="Agenda" asp-action="Index">
+                <img src="~/images/dashboard/Consultorio.svg" alt="" />
+                <div class="nombre">Agenda</div><div class="detalle">Citas del día por médico</div>
+            </a>
+        </div>
+    }
+    @if (esAdmin)
+    {
+        <div class="col-6 col-md-4 col-lg-2">
+            <a class="modulo" asp-controller="Medicos" asp-action="Index">
+                <img src="~/images/dashboard/medicos.svg" alt="" />
+                <div class="nombre">Médicos</div><div class="detalle">Datos y horarios</div>
+            </a>
+        </div>
+        <div class="col-6 col-md-4 col-lg-2">
+            <a class="modulo" asp-controller="Usuarios" asp-action="Index">
+                <img src="~/images/dashboard/usuarios.svg" alt="" />
+                <div class="nombre">Usuarios</div><div class="detalle">Accesos y roles</div>
+            </a>
+        </div>
+    }
+</div>
+
+@if (i is not null)
+{
+    <p class="subtitulo mb-2">Indicadores del @Vista.Fecha(i.Desde) al @Vista.Fecha(i.Hasta)</p>
+    @if (i.TotalCitas == 0)
+    {
+        <div class="panel text-center text-secondary">Aún no hay citas registradas en el periodo.</div>
+    }
+    else
+    {
+        <div class="row g-3">
+            <div class="col-lg-4">
+                <div class="panel h-100"><h2>Citas por estado</h2><canvas id="graficoEstado" height="230" role="img" aria-label="Citas por estado"></canvas></div>
+            </div>
+            <div class="col-lg-8">
+                <div class="panel h-100"><h2>Citas por día</h2><canvas id="graficoDia" height="110" role="img" aria-label="Citas por día"></canvas></div>
+            </div>
+            <div class="col-lg-6">
+                <div class="panel h-100"><h2>Citas por especialidad</h2><canvas id="graficoEspecialidad" height="150" role="img" aria-label="Citas por especialidad"></canvas></div>
+            </div>
+            <div class="col-lg-6">
+                <div class="panel h-100"><h2>Ocupación por consultorio</h2><canvas id="graficoConsultorio" height="150" role="img" aria-label="Citas por consultorio"></canvas></div>
+            </div>
+        </div>
+    }
+}
+
+@section Scripts {
+    @if (i is not null && i.TotalCitas > 0)
+    {
+        <script src="~/lib/chart.js/chart.umd.js"></script>
+        <script>
+            (function () {
+                var datos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { i.PorEstado, i.PorDia, i.PorEspecialidad, i.PorConsultorio }));
+                var colores = ['#4f46e5', '#f59e0b', '#10b981', '#ef4444', '#94a3b8', '#7c3aed', '#06b6d4', '#ec4899'];
+                var colorEstado = { 'Pendiente': '#4f46e5', 'Reprogramada': '#f59e0b', 'Atendida': '#10b981', 'Cancelada': '#ef4444', 'No asistió': '#94a3b8' };
+                function etiquetas(serie) { return serie.map(function (p) { return p.Etiqueta; }); }
+                function valores(serie) { return serie.map(function (p) { return p.Valor; }); }
+                var enteros = { beginAtZero: true, ticks: { precision: 0 } };
+
+                new Chart(document.getElementById('graficoEstado'), {
+                    type: 'doughnut',
+                    data: { labels: etiquetas(datos.PorEstado), datasets: [{ data: valores(datos.PorEstado), backgroundColor: etiquetas(datos.PorEstado).map(function (e) { return colorEstado[e] || '#64748b'; }) }] },
+                    options: { plugins: { legend: { position: 'bottom' } } }
+                });
+                new Chart(document.getElementById('graficoDia'), {
+                    type: 'line',
+                    data: { labels: etiquetas(datos.PorDia), datasets: [{ label: 'Citas', data: valores(datos.PorDia), borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,.12)', fill: true, tension: .3 }] },
+                    options: { plugins: { legend: { display: false } }, scales: { y: enteros } }
+                });
+                new Chart(document.getElementById('graficoEspecialidad'), {
+                    type: 'bar',
+                    data: { labels: etiquetas(datos.PorEspecialidad), datasets: [{ label: 'Citas', data: valores(datos.PorEspecialidad), backgroundColor: colores }] },
+                    options: { plugins: { legend: { display: false } }, scales: { y: enteros } }
+                });
+                new Chart(document.getElementById('graficoConsultorio'), {
+                    type: 'bar',
+                    data: { labels: etiquetas(datos.PorConsultorio), datasets: [{ label: 'Citas', data: valores(datos.PorConsultorio), backgroundColor: '#7c3aed' }] },
+                    options: { indexAxis: 'y', plugins: { legend: { display: false } }, scales: { x: enteros } }
+                });
+            })();
+        </script>
+    }
+}

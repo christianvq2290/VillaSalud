@@ -1,0 +1,24 @@
+@model EspecialidadDto
+@{
+    ViewData["Title"] = Model.IdEspecialidad == 0 ? "Nueva especialidad" : "Editar especialidad";
+}
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="panel">
+            <h1 class="titulo-pagina">@ViewData["Title"]</h1>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <form asp-action="Editar" asp-route-id="@Model.IdEspecialidad" method="post">
+                <div class="mb-4">
+                    <label asp-for="Nombre" class="form-label">Nombre</label>
+                    <input asp-for="Nombre" class="form-control" />
+                    <span asp-validation-for="Nombre" class="text-danger small"></span>
+                </div>
+                <button type="submit" class="btn btn-primario">Guardar</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,57 @@
+@model MedicoDto
+@{
+    ViewData["Title"] = Model.IdMedico == 0 ? "Nuevo médico" : "Editar médico";
+}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="panel">
+            <h1 class="titulo-pagina">@ViewData["Title"]</h1>
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger" role="alert"></div>
+            <form asp-action="Editar" asp-route-id="@Model.IdMedico" method="post">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Nombres" class="form-label">Nombres</label>
+                        <input asp-for="Nombres" class="form-control" />
+                        <span asp-validation-for="Nombres" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Apellidos" class="form-label">Apellidos</label>
+                        <input asp-for="Apellidos" class="form-control" />
+                        <span asp-validation-for="Apellidos" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="CodigoColegiatura" class="form-label">Código de colegiatura</label>
+                        <input asp-for="CodigoColegiatura" class="form-control" />
+                        <span asp-validation-for="CodigoColegiatura" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="IdEspecialidad" class="form-label">Especialidad</label>
+                        <select asp-for="IdEspecialidad" asp-items="ViewBag.Especialidades" class="form-select">
+                            <option value="0">-- Seleccione --</option>
+                        </select>
+                        <span asp-validation-for="IdEspecialidad" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Telefono" class="form-label">Teléfono</label>
+                        <input asp-for="Telefono" class="form-control" />
+                        <span asp-validation-for="Telefono" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="Email" class="form-label">Correo</label>
+                        <input asp-for="Email" type="email" class="form-control" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                </div>
+                <div class="form-check mb-4">
+                    <input asp-for="Estado" class="form-check-input" />
+                    <label asp-for="Estado" class="form-check-label">Médico activo</label>
+                </div>
+                <button type="submit" class="btn btn-primario">Guardar</button>
+                <a class="btn btn-outline-secondary" asp-action="Index">Cancelar</a>
+            </form>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

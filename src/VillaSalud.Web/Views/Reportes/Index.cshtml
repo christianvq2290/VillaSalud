@@ -1,0 +1,115 @@
+@model ReportesVm
+@{
+    ViewData["Title"] = "Reportes";
+    var r = Model.Reporte;
+    var parametros = new Dictionary<string, string>
+    {
+        ["desde"] = Vista.FechaIso(Model.Filtro.Desde),
+        ["hasta"] = Vista.FechaIso(Model.Filtro.Hasta)
+    };
+    if (Model.Filtro.IdMedico.HasValue) parametros["idMedico"] = Model.Filtro.IdMedico.Value.ToString();
+    if (Model.Filtro.IdEstadoCita.HasValue) parametros["idEstadoCita"] = Model.Filtro.IdEstadoCita.Value.ToString();
+}
+<h1 class="titulo-pagina">Reporte de citas</h1>
+<p class="subtitulo">Consulte por periodo y exporte a PDF, Excel o CSV. El periodo máximo es de 12 meses.</p>
+
+<div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+<div class="panel">
+    <form asp-action="Index" method="get" class="row g-2 align-items-end">
+        <div class="col-6 col-md-2">
+            <label for="Desde" class="form-label">Desde</label>
+            <input type="date" id="Desde" name="Desde" class="form-control" value="@Vista.FechaIso(Model.Filtro.Desde)" />
+        </div>
+        <div class="col-6 col-md-2">
+            <label for="Hasta" class="form-label">Hasta</label>
+            <input type="date" id="Hasta" name="Hasta" class="form-control" value="@Vista.FechaIso(Model.Filtro.Hasta)" />
+        </div>
+        <div class="col-md-4">
+            <label for="IdMedico" class="form-label">Médico</label>
+            <select id="IdMedico" name="IdMedico" class="form-select">
+                <option value="">Todos</option>
+                @foreach (var m in Model.Medicos)
+                {
+                    <option value="@m.IdMedico" selected="@(Model.Filtro.IdMedico == m.IdMedico)">@m.NombreCompleto · @m.Especialidad</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="IdEstadoCita" class="form-label">Estado</label>
+            <select id="IdEstadoCita" name="IdEstadoCita" class="form-select">
+                <option value="">Todos</option>
+                @foreach (var (id, nombre) in Vista.EstadosCita)
+                {
+                    <option value="@id" selected="@(Model.Filtro.IdEstadoCita == id)">@nombre</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100">Consultar</button></div>
+    </form>
+</div>
+
+@if (r is not null)
+{
+    <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
+        <span class="text-secondary">@r.Filas.Count cita(s) del @Vista.Fecha(r.Desde) al @Vista.Fecha(r.Hasta)</span>
+        <div class="btn-group" role="group" aria-label="Exportar">
+            <a class="btn btn-outline-danger" asp-action="Exportar" asp-all-route-data="parametros" asp-route-formato="pdf">Exportar PDF</a>
+            <a class="btn btn-outline-success" asp-action="Exportar" asp-all-route-data="parametros" asp-route-formato="xlsx">Exportar Excel</a>
+            <a class="btn btn-outline-secondary" asp-action="Exportar" asp-all-route-data="parametros" asp-route-formato="csv">Exportar CSV</a>
+        </div>
+    </div>
+
+    <div class="panel p-0">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm">
+                <thead><tr><th>Fecha</th><th>Hora</th><th>Código</th><th>Paciente</th><th>DNI</th><th>Médico</th><th>Especialidad</th><th>Consultorio</th><th>Sede</th><th>Estado</th></tr></thead>
+                <tbody>
+                    @foreach (var f in r.Filas)
+                    {
+                        <tr>
+                            <td>@Vista.Fecha(f.Fecha)</td>
+                            <td>@Vista.Hora(f.HoraInicio)</td>
+                            <td>@f.Codigo</td>
+                            <td>@f.Paciente</td>
+                            <td>@f.Dni</td>
+                            <td>@f.Medico</td>
+                            <td>@f.Especialidad</td>
+                            <td>@f.Consultorio</td>
+                            <td>@f.Sede</td>
+                            <td>@f.Estado</td>
+                        </tr>
+                    }
+                    @if (r.Filas.Count == 0)
+                    {
+                        <tr><td colspan="10" class="text-center text-secondary py-4">No hay citas en el periodo seleccionado.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    @if (r.Resumen.Count > 0)
+    {
+        <div class="panel p-0">
+            <div class="table-responsive">
+                <table class="table table-sm">
+                    <thead><tr><th>Productividad por médico</th><th>Especialidad</th><th class="text-end">Total</th><th class="text-end">Atendidas</th><th class="text-end">Canceladas</th><th class="text-end">No asistió</th></tr></thead>
+                    <tbody>
+                        @foreach (var m in r.Resumen)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@m.Medico</td>
+                                <td>@m.Especialidad</td>
+                                <td class="text-end">@m.Total</td>
+                                <td class="text-end">@m.Atendidas</td>
+                                <td class="text-end">@m.Canceladas</td>
+                                <td class="text-end">@m.NoAsistio</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+}

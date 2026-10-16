@@ -1,0 +1,68 @@
+@model AgendaVm
+@{
+    ViewData["Title"] = "Agenda";
+}
+<h1 class="titulo-pagina">Agenda del día</h1>
+<p class="subtitulo">Registre la atención o la inasistencia de cada cita.</p>
+
+<div class="panel">
+    <form asp-action="Index" method="get" class="row g-2 align-items-end">
+        <div class="col-6 col-md-3">
+            <label for="fecha" class="form-label">Fecha</label>
+            <input type="date" id="fecha" name="fecha" value="@Vista.FechaIso(Model.Fecha)" class="form-control" />
+        </div>
+        @if (!Model.EsMedico)
+        {
+            <div class="col-md-5">
+                <label for="idMedico" class="form-label">Médico</label>
+                <select id="idMedico" name="idMedico" class="form-select" required>
+                    <option value="">-- Seleccione --</option>
+                    @foreach (var m in Model.Medicos)
+                    {
+                        <option value="@m.IdMedico" selected="@(Model.IdMedico == m.IdMedico)">@m.NombreCompleto · @m.Especialidad</option>
+                    }
+                </select>
+            </div>
+        }
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100">Consultar</button></div>
+    </form>
+</div>
+
+@if (Model.IdMedico.HasValue)
+{
+    <div class="panel p-0">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead><tr><th>Hora</th><th>Paciente</th><th>Consultorio</th><th>Motivo</th><th>Estado</th><th></th></tr></thead>
+                <tbody>
+                    @foreach (var c in Model.Citas)
+                    {
+                        <tr>
+                            <td class="fw-semibold text-nowrap">@Vista.Hora(c.HoraInicio) – @Vista.Hora(c.HoraFin)</td>
+                            <td>@c.Paciente <span class="text-secondary small">@c.DniPaciente</span></td>
+                            <td>@c.Consultorio</td>
+                            <td>@c.MotivoConsulta</td>
+                            <td><span class="@Vista.ClaseEstado(c.IdEstadoCita)">@c.Estado</span></td>
+                            <td class="text-end text-nowrap">
+                                @if (c.Activa)
+                                {
+                                    <form asp-action="Atender" asp-route-id="@c.IdCita" method="post" class="d-inline-flex gap-1">
+                                        <input type="hidden" name="fecha" value="@Vista.FechaIso(Model.Fecha)" />
+                                        <input type="hidden" name="idMedico" value="@Model.IdMedico" />
+                                        <input type="text" name="Observacion" class="form-control form-control-sm" placeholder="Observación" maxlength="250" style="width: 150px" aria-label="Observación" />
+                                        <button type="submit" name="Asistio" value="true" class="btn btn-sm btn-success">Atendida</button>
+                                        <button type="submit" name="Asistio" value="false" class="btn btn-sm btn-outline-secondary" formnovalidate>No asistió</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.Citas.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-center text-secondary py-4">No hay citas para la fecha seleccionada.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

@@ -1,0 +1,70 @@
+@model CitasIndexVm
+@{
+    ViewData["Title"] = "Citas";
+}
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+    <h1 class="titulo-pagina mb-0">Citas</h1>
+    <a class="btn btn-primario" asp-action="Programar">Nueva cita</a>
+</div>
+
+<div class="panel">
+    <form asp-action="Index" method="get" class="row g-2 align-items-end">
+        <div class="col-6 col-md-2">
+            <label for="Desde" class="form-label">Desde</label>
+            <input type="date" id="Desde" name="Desde" class="form-control" value="@Vista.FechaIso(Model.Filtro.Desde)" />
+        </div>
+        <div class="col-6 col-md-2">
+            <label for="Hasta" class="form-label">Hasta</label>
+            <input type="date" id="Hasta" name="Hasta" class="form-control" value="@Vista.FechaIso(Model.Filtro.Hasta)" />
+        </div>
+        <div class="col-md-4">
+            <label for="IdMedico" class="form-label">Médico</label>
+            <select id="IdMedico" name="IdMedico" class="form-select">
+                <option value="">Todos</option>
+                @foreach (var m in Model.Medicos)
+                {
+                    <option value="@m.IdMedico" selected="@(Model.Filtro.IdMedico == m.IdMedico)">@m.NombreCompleto · @m.Especialidad</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label for="IdEstadoCita" class="form-label">Estado</label>
+            <select id="IdEstadoCita" name="IdEstadoCita" class="form-select">
+                <option value="">Todos</option>
+                @foreach (var (id, nombre) in Vista.EstadosCita)
+                {
+                    <option value="@id" selected="@(Model.Filtro.IdEstadoCita == id)">@nombre</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2"><button type="submit" class="btn btn-outline-primary w-100">Filtrar</button></div>
+    </form>
+</div>
+
+<div class="panel p-0">
+    <div class="table-responsive">
+        <table class="table table-hover">
+            <thead><tr><th>Fecha</th><th>Hora</th><th>Código</th><th>Paciente</th><th>Médico</th><th>Consultorio</th><th>Estado</th><th></th></tr></thead>
+            <tbody>
+                @foreach (var c in Model.Citas)
+                {
+                    <tr>
+                        <td>@Vista.Fecha(c.Fecha)</td>
+                        <td>@Vista.Hora(c.HoraInicio)</td>
+                        <td>@c.Codigo</td>
+                        <td class="fw-semibold">@c.Paciente <span class="text-secondary fw-normal small">@c.DniPaciente</span></td>
+                        <td>@c.Medico <span class="text-secondary small">· @c.Especialidad</span></td>
+                        <td>@c.Consultorio <span class="text-secondary small">@c.Sede</span></td>
+                        <td><span class="@Vista.ClaseEstado(c.IdEstadoCita)">@c.Estado</span></td>
+                        <td class="text-end"><a class="btn btn-sm btn-outline-primary" asp-action="Detalle" asp-route-id="@c.IdCita">Ver</a></td>
+                    </tr>
+                }
+                @if (Model.Citas.Count == 0)
+                {
+                    <tr><td colspan="8" class="text-center text-secondary py-4">No hay citas en el periodo seleccionado.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+<p class="text-secondary small">@Model.Citas.Count cita(s).@(User.IsInRole("Administrador") ? "" : " Se muestran las de su sede.")</p>
